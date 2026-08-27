@@ -2,11 +2,94 @@ const express = require("express");
 const app = express();
 const PORTA = 3000;
 
-const tarefas = [
-  { id: 1, texto: "Estudar Node", prioridade: "alta", coluna: "afazer" },
+let  tarefas = [
+  { id: 1, texto: "Estudar Node", prioridade: "alta",  },
   { id: 2, texto: "Criar API", prioridade: "alta", coluna: "andamento" },
   { id: 3, texto: "Testar Postman", prioridade: "media", coluna: "concluido" },
 ];
+
+// express.json() DEVE VIR ANTES das rotas
+// É um middleware — processa a requisição antes de chegar na rota
+
+app.use(express.json());
+
+let proximoId = 4; // começa em 4 pois já temos 3 tarefas
+
+app.post("/tarefas", (req, res) => {
+  // req.body contém os dados enviados no body da requisição
+  const { texto, prioridade, coluna, cidade } = req.body;
+  // Criar a nova tarefa com ID gerado pelo servidor
+  const novaTarefa = {
+    id: proximoId++, // usa o ID atual e incrementa
+    texto: texto,
+    prioridade: prioridade || "media", // valor padrão se não enviado
+    coluna: coluna || "afazer",
+    cidade: cidade || "",
+  };
+
+  // Adicionar ao array em memória
+  tarefas.push(novaTarefa);
+
+  // Retornar a tarefa criada com status 201 Created
+  res.status(201).json(novaTarefa);
+});
+
+
+
+// PUT substitui TODOS os campos da tarefa pelo que foi enviado
+// Diferente do PATCH que atualiza apenas campos específicos
+
+app.put('/tarefas/:id', (req, res) => {
+
+const id = Number(req.params.id);
+const { texto, prioridade, coluna, cidade } = req.body;
+// Encontrar o índice da tarefa no array
+const indice = tarefas.findIndex(t => t.id === id);
+// Se não encontrou — retornar 404
+if (indice === -1) {
+return res.status(404).json({ erro: 'Tarefa não encontrada' });
+}
+// Substituir a tarefa no array mantendo o mesmo ID
+const tarefaAtualizada = { id, texto, prioridade, coluna, cidade };
+tarefas[indice] = tarefaAtualizada;
+// Retornar a tarefa atualizada com status 200
+res.json(tarefaAtualizada);
+});
+
+
+app.delete("/tarefas/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  // Verificar se a tarefa existe antes de remover
+
+  const tarefa = tarefas.find((t) => t.id === id);
+
+  if (!tarefa) {
+    return res.status(404).json({ erro: "Tarefa não encontrada" });
+  }
+
+  // Remover do array com filter
+
+  tarefas = tarefas.filter((t) => t.id !== id);
+
+  // Retornar confirmação da remoção
+
+  res.json({ mensagem: "Tarefa removida com sucesso", id });
+});
+
+// Nota: para usar tarefas = tarefas.filter(...)
+
+// a variável precisa ser declarada com let, não const:
+
+// let tarefas = [ ... ];
+
+// Testar no Postman:
+
+// DELETE http://localhost:3000/tarefas/1
+
+// Não precisa de body — só a URL com o ID
+
+// Verificar: GET /tarefas → tarefa 1 não aparece mais
 
 app.get("/", (req, res) => {
   res.json({ status: "ok" });
@@ -26,7 +109,7 @@ app.get("/tarefas", (req, res) => {
     resultado = resultado.filter((t) => t.prioridade === prioridade);
   }
   res.json(resultado);
-});
+}); 
 
 app.get("/tarefas/:id", (req, res) => {
   // req.params.id chega como STRING — converter para número
