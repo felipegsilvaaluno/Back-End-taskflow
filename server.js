@@ -7,7 +7,7 @@ let tarefas = [
   { id: 2, texto: "Criar API", prioridade: "alta", coluna: "andamento" },
   { id: 3, texto: "Testar Postman", prioridade: "media", coluna: "concluido" },
 ];
-let proximoId = 4; // começa em 4 pois já temos 3 tarefas
+let proximoId = 4; 
 
 // USUARIOS
 let usuarios = [
@@ -15,8 +15,6 @@ let usuarios = [
 ];
 let proximoIdUsuario = 2;
 
-// express.json() DEVE VIR ANTES das rotas
-// É um middleware — processa a requisição antes de chegar na rota
 app.use(express.json());
 
 //Lista usuarios -----------------------------------------
@@ -107,7 +105,7 @@ app.delete("/usuarios/:id", (req, res) => {
   res.json({ mensagem: "usuario removido com sucesso", id });
 });
 
-//Lista tarefas e faz todo CRUD -----------------------
+//Lista tarefas e faz todo CRUD ---------------------------------------------------------
 
 app.post("/tarefas", (req, res) => {
   // req.body contém os dados enviados no body da requisição
@@ -166,20 +164,6 @@ app.delete("/tarefas/:id", (req, res) => {
 
   res.json({ mensagem: "Tarefa removida com sucesso", id });
 });
-
-// Nota: para usar tarefas = tarefas.filter(...)
-
-// a variável precisa ser declarada com let, não const:
-
-// let tarefas = [ ... ];
-
-// Testar no Postman:
-
-// DELETE http://localhost:3000/tarefas/1
-
-// Não precisa de body — só a URL com o ID
-
-// Verificar: GET /tarefas → tarefa 1 não aparece mais
 
 app.get("/", (req, res) => {
   res.json({ status: "ok" });
@@ -263,37 +247,7 @@ app.get("/estatisticas", (req, res) => {
   });
 });
 
-// IMPORTANTE: vem antes de /:id
-// app.get("/estatisticas/resumo", (req, res) => {
-//   const total = tarefas.length;
-
-//   const porColuna = {
-//     afazer: tarefas.filter((tarefa) => (tarefa.coluna || "afazer") === "afazer")
-//       .length,
-
-//     andamento: tarefas.filter((tarefa) => tarefa.coluna === "andamento").length,
-
-//     concluido: tarefas.filter((tarefa) => tarefa.coluna === "concluido").length,
-//   };
-
-//   const maior = Object.entries(porColuna).sort((a, b) => b[1] - a[1])[0];
-
-//   const resumo = `Existem ${total} tarefas. A coluna com mais tarefas é ${maior[0]}, com ${maior[1]} tarefa(s).`;
-
-//   res.json({
-//     resumo,
-//   });
-// });
-
-// // Exemplo de rota dinâmica
-// app.get("/tarefas/:id", (req, res) => {
-//   const tarefa = tarefas.find((tarefa) => tarefa.id === Number(req.params.id));
-
-//   res.json(tarefa);
-// });
-
-// Rota 404 — DEVE SER A ÚLTIMA
-// app.use() captura QUALQUER método e QUALQUER caminho
+// Rota 404 
 app.use((req, res) => {
   res.status(404).json({
     erro: "Rota não encontrada",
