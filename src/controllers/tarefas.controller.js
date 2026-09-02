@@ -1,5 +1,5 @@
 let tarefas = [
-  { id: 1, texto: "Estudar Node", prioridade: "alta" },
+  { id: 1, texto: "Estudar Node", prioridade: "alta", coluna: "andamento" },
   { id: 2, texto: "Criar API", prioridade: "alta", coluna: "andamento" },
   { id: 3, texto: "Testar Postman", prioridade: "media", coluna: "concluido" },
 ];
