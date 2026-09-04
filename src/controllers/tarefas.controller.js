@@ -1,7 +1,7 @@
 const tarefaModel = require("../models/tarefa.model");
 
 const tarefasController = {
-  // GET /tarefas — listar todas
+
   listar(req, res) {
     const { coluna, prioridade } = req.query;
 
@@ -17,7 +17,7 @@ const tarefasController = {
     res.json(resultado);
   },
 
-  // GET /tarefas/:id — buscar por ID
+
   buscarPorId(req, res) {
     const tarefa = tarefaModel.buscar(parseInt(req.params.id));
 
@@ -26,7 +26,7 @@ const tarefasController = {
     res.json(tarefa);
   },
 
-  // POST /tarefas — criar nova tarefa
+ 
   criar(req, res) {
     const { texto } = req.body;
 
@@ -35,7 +35,7 @@ const tarefasController = {
     res.status(201).json(tarefaModel.adicionar(req.body));
   },
 
-  // PUT /tarefas/:id — atualizar tarefa
+
   atualizar(req, res) {
     const atualizada = tarefaModel.atualizar(parseInt(req.params.id), req.body);
 
@@ -45,7 +45,7 @@ const tarefasController = {
     res.json(atualizada);
   },
 
-  // DELETE /tarefas/:id — remover tarefa
+ 
   remover(req, res) {
     const removida = tarefaModel.remover(parseInt(req.params.id));
 
