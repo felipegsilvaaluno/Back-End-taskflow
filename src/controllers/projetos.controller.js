@@ -1,74 +1,53 @@
-let projetos = [
-    {id: 1, descricao: "Projetos para fazer logo", ativo: true}
-];
-
-let proximoIdProjetos = 2;
+const projetoModel = require("../models/projeto.model");
 
 const projetosController = {
   listar(req, res) {
     const { descricao } = req.query;
-    let resposta = projetos;
+    let resposta = projetoModel.listar();
 
     if (descricao) {
-      resposta = resposta.filter((t) => t.descricao === descricao);
+      resposta = resposta.filter((p) => p.descricao === descricao);
     }
 
     res.json(resposta);
   },
 
   buscarPorId(req, res) {
-    const id = Number(req.params.id);
+    const projeto = projetoModel.buscar(parseInt(req.params.id));
 
-    const projetoPorId = projetos.find((t) => t.id === id);
-    if (!projetoPorId) {
+    if (!projeto) {
       return res.status(404).json({ erro: "Projeto não encontrado" });
     }
-    res.json(projetoPorId);
+
+    res.json(projeto);
   },
 
   criar(req, res) {
-    const { descricao, ativo } = req.body;
-
-    const novoProjeto = {
-      id: proximoIdProjetos++,
-      descricao: descricao || "teste esse projeto",
-      ativo: ativo || true,
-    };
-
-    projetos.push(novoProjeto);
-
+    const novoProjeto = projetoModel.adicionar(req.body);
     res.status(201).json(novoProjeto);
   },
 
   atualizar(req, res) {
-    const id = Number(req.params.id);
-    const { descricao, ativo } = req.body;
+    const id = parseInt(req.params.id);
+    const projetoAtualizado = projetoModel.atualizar(id, req.body);
 
-    const indice = projetos.findIndex((t) => t.id === id);
-
-    if (indice === -1) {
-      return res.status(404).json({ erro: "projeto não encontrado" });
+    if (!projetoAtualizado) {
+      return res.status(404).json({ erro: "Projeto não encontrado" });
     }
-    const projetoAtualizado = { descricao, ativo };
-    projetos[indice] = projetoAtualizado;
 
     res.json(projetoAtualizado);
   },
 
   remover(req, res) {
-    const id = Number(req.params.id);
+    const id = parseInt(req.params.id);
+    const removido = projetoModel.remover(id);
 
-    const projeto = projetos.find((t) => t.id === id);
-
-    if (!projeto) {
-      return res.status(404).json({ erro: "projeto não encontrado" });
+    if (!removido) {
+      return res.status(404).json({ erro: "Projeto não encontrado" });
     }
-    projetos = projetos.filter((t) => t.id !== id);
 
-    res.json({ mensagem: "usuario removido com sucesso", id });
+    res.json({ mensagem: "Projeto removido com sucesso", id });
   },
 };
 
 module.exports = projetosController;
-
-
