@@ -1,120 +1,80 @@
-let tarefas = [
-  { id: 1, texto: "Estudar Node", prioridade: "alta", coluna: "andamento" },
-  { id: 2, texto: "Criar API", prioridade: "alta", coluna: "andamento" },
-  { id: 3, texto: "Testar Postman", prioridade: "media", coluna: "concluido" },
-];
-
-let proximoId = 4;
+const tarefaModel = require("../models/tarefa.model");
 
 const tarefasController = {
   // GET /tarefas — listar todas
   listar(req, res) {
     const { coluna, prioridade } = req.query;
 
-    let resultado = tarefas;
+    let resultado = tarefaModel.listar();
 
     if (coluna) {
-      resultado = resultado.filter((t) => t.coluna === coluna);
+      resultado = resultado.filter((t) => (t.coluna || "afazer") === coluna);
     }
     if (prioridade) {
       resultado = resultado.filter((t) => t.prioridade === prioridade);
     }
+
     res.json(resultado);
   },
 
   // GET /tarefas/:id — buscar por ID
   buscarPorId(req, res) {
-    const id = Number(req.params.id);
+    const tarefa = tarefaModel.buscar(parseInt(req.params.id));
 
-    const tarefa = tarefas.find((t) => t.id === id);
-
-    if (!tarefa) {
-      return res.status(404).json({ erro: "Tarefa não encontrada" });
-    }
+    if (!tarefa) return res.status(404).json({ erro: "Tarefa não encontrada" });
 
     res.json(tarefa);
   },
 
   // POST /tarefas — criar nova tarefa
   criar(req, res) {
-    const { texto, prioridade, coluna, cidade } = req.body;
-    const novaTarefa = {
-      id: proximoId++,
-      texto: texto,
-      prioridade: prioridade || "media",
-      coluna: coluna || "afazer",
-      cidade: cidade || "",
-    };
+    const { texto } = req.body;
 
-    tarefas.push(novaTarefa);
+    if (!texto) return res.status(400).json({ erro: "Texto obrigatório" });
 
-    res.status(201).json(novaTarefa);
+    res.status(201).json(tarefaModel.adicionar(req.body));
   },
 
   // PUT /tarefas/:id — atualizar tarefa
   atualizar(req, res) {
-    const id = Number(req.params.id);
-    const { texto, prioridade, coluna, cidade } = req.body;
+    const atualizada = tarefaModel.atualizar(parseInt(req.params.id), req.body);
 
-    const indice = tarefas.findIndex((t) => t.id === id);
-
-    if (indice === -1) {
+    if (!atualizada)
       return res.status(404).json({ erro: "Tarefa não encontrada" });
-    }
-    const tarefaAtualizada = { id, texto, prioridade, coluna, cidade };
-    tarefas[indice] = tarefaAtualizada;
 
-    res.json(tarefaAtualizada);
+    res.json(atualizada);
   },
 
   // DELETE /tarefas/:id — remover tarefa
   remover(req, res) {
-    const id = Number(req.params.id);
+    const removida = tarefaModel.remover(parseInt(req.params.id));
 
-    const tarefa = tarefas.find((t) => t.id === id);
-
-    if (!tarefa) {
+    if (!removida)
       return res.status(404).json({ erro: "Tarefa não encontrada" });
-    }
 
-    tarefas = tarefas.filter((t) => t.id !== id);
-
-    res.json({ mensagem: "Tarefa removida com sucesso", id });
+    res.json({ mensagem: "Tarefa removida", tarefa: removida });
   },
 
   // GET /tarefas/estatisticas
   estatisticas(req, res) {
-    const coluna = req.query.coluna;
+    const { coluna } = req.query;
 
-    const tarefasFiltradas = coluna
-      ? tarefas.filter((tarefa) => (tarefa.coluna || "afazer") === coluna)
-      : tarefas;
+    const base = coluna
+      ? tarefaModel.listarPorColuna(coluna)
+      : tarefaModel.listar();
 
-    const total = tarefasFiltradas.length;
+    const total = base.length;
 
     const porColuna = {
-      afazer: tarefasFiltradas.filter(
-        (tarefa) => (tarefa.coluna || "afazer") === "afazer",
-      ).length,
-
-      andamento: tarefasFiltradas.filter(
-        (tarefa) => tarefa.coluna === "andamento",
-      ).length,
-
-      concluido: tarefasFiltradas.filter(
-        (tarefa) => tarefa.coluna === "concluido",
-      ).length,
+      afazer: base.filter((t) => (t.coluna || "afazer") === "afazer").length,
+      andamento: base.filter((t) => t.coluna === "andamento").length,
+      concluido: base.filter((t) => t.coluna === "concluido").length,
     };
 
     const porPrioridade = {
-      alta: tarefasFiltradas.filter((tarefa) => tarefa.prioridade === "alta")
-        .length,
-
-      media: tarefasFiltradas.filter((tarefa) => tarefa.prioridade === "media")
-        .length,
-
-      baixa: tarefasFiltradas.filter((tarefa) => tarefa.prioridade === "baixa")
-        .length,
+      alta: base.filter((t) => t.prioridade === "alta").length,
+      media: base.filter((t) => t.prioridade === "media").length,
+      baixa: base.filter((t) => t.prioridade === "baixa").length,
     };
 
     const colunaMaisTarefas = Object.entries(porColuna).sort(
