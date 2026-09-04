@@ -5,6 +5,7 @@ let tarefas = [
     prioridade: "alta",
     coluna: "andamento",
     cidade: "",
+    usuarioId: 1,
   },
   {
     id: 2,
@@ -12,6 +13,7 @@ let tarefas = [
     prioridade: "alta",
     coluna: "andamento",
     cidade: "",
+    usuarioId: 1,
   },
   {
     id: 3,
@@ -19,6 +21,7 @@ let tarefas = [
     prioridade: "media",
     coluna: "concluido",
     cidade: "",
+    usuarioId: 1,
   },
 ];
 
@@ -34,13 +37,14 @@ module.exports = {
 
   buscar: (id) => tarefas.find((t) => t.id === id),
 
-  adicionar: ({ texto, prioridade, coluna }) => {
+  adicionar: ({ texto, prioridade, coluna, cidade, usuarioId }) => {
     const nova = {
       id: proximoId++,
       texto,
       prioridade: prioridade || "media",
       coluna: coluna || "afazer",
       cidade: cidade || "",
+      usuarioId: usuarioId,
     };
     tarefas.push(nova);
     return nova;

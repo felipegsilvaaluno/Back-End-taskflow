@@ -1,4 +1,5 @@
 const tarefaModel = require("../models/tarefa.model");
+const usuarioModel = require("../models/usuario.model");
 
 const tarefasController = {
 
@@ -28,9 +29,17 @@ const tarefasController = {
 
  
   criar(req, res) {
-    const { texto } = req.body;
+    const { texto, usuarioId } = req.body;
 
     if (!texto) return res.status(400).json({ erro: "Texto obrigatório" });
+
+    const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
+
+    if (!usuarioExiste) {
+      return res.status(400).json({ erro: "Usuário não encontrado" });
+    }
+
+    req.body.usuarioId = parseInt(usuarioId);
 
     res.status(201).json(tarefaModel.adicionar(req.body));
   },
