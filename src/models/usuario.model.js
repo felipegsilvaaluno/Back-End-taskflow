@@ -5,8 +5,18 @@ let usuarios = [
 let proximoId = 2;
 
 module.exports = {
- 
-  listar: () => usuarios,
+  listar: ({ nome, email } = {}) => {
+    let resultado = usuarios;
+
+    if (nome) {
+      resultado = resultado.filter((u) => u.nome === nome);
+    }
+    if (email) {
+      resultado = resultado.filter((u) => u.email === email);
+    }
+
+    return resultado;
+  },
 
   buscar: (id) => usuarios.find((u) => u.id === id),
 
@@ -30,7 +40,7 @@ module.exports = {
     usuarios[idx] = { id, ...dados };
     return usuarios[idx];
   },
-  
+
   remover: (id) => {
     const idx = usuarios.findIndex((u) => u.id === id);
     if (idx === -1) return null;

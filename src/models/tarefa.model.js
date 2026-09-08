@@ -28,7 +28,6 @@ let tarefas = [
 let proximoId = 4;
 
 module.exports = {
-
   listar: ({ coluna, prioridade } = {}) => {
     let resultado = tarefas;
 
@@ -49,6 +48,9 @@ module.exports = {
     tarefas.filter((t) => t.prioridade === prioridade),
 
   buscar: (id) => tarefas.find((t) => t.id === id),
+
+  contarPorUsuario: (usuarioId) =>
+    tarefas.filter((t) => t.usuarioId === usuarioId).length,
 
   adicionar: ({ texto, prioridade, coluna, cidade, usuarioId }) => {
     const nova = {
@@ -77,7 +79,6 @@ module.exports = {
 
     return tarefas.splice(idx, 1)[0];
   },
-
 
   obterEstatisticas: (coluna) => {
     const base = coluna
