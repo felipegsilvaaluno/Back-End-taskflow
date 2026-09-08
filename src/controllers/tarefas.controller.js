@@ -1,8 +1,10 @@
 const tarefaModel = require("../models/tarefa.model");
 const usuarioModel = require("../models/usuario.model");
 
-const tarefasController = {
+const PRIORIDADES_VALIDAS = ["alta", "media", "baixa"];
+const COLUNAS_VALIDAS = ["afazer", "andamento", "concluido"];
 
+const tarefasController = {
   listar(req, res) {
     const { coluna, prioridade } = req.query;
 
@@ -18,7 +20,6 @@ const tarefasController = {
     res.json(resultado);
   },
 
-
   buscarPorId(req, res) {
     const tarefa = tarefaModel.buscar(parseInt(req.params.id));
 
@@ -27,14 +28,28 @@ const tarefasController = {
     res.json(tarefa);
   },
 
- 
   criar(req, res) {
-    const { texto, usuarioId } = req.body;
+    const { texto, prioridade, coluna, usuarioId } = req.body;
 
+    // 1. Validar texto
     if (!texto) return res.status(400).json({ erro: "Texto obrigatório" });
 
-    const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
+    // 2. Validar prioridade (se enviada)
+    if (prioridade && !PRIORIDADES_VALIDAS.includes(prioridade)) {
+      return res.status(400).json({
+        erro: "Prioridade inválida. Use: alta, media ou baixa",
+      });
+    }
 
+    // 3. Validar coluna (se enviada)
+    if (coluna && !COLUNAS_VALIDAS.includes(coluna)) {
+      return res.status(400).json({
+        erro: "Coluna inválida. Use: afazer, andamento ou concluido",
+      });
+    }
+
+    // 4. Validar usuário
+    const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
     if (!usuarioExiste) {
       return res.status(400).json({ erro: "Usuário não encontrado" });
     }
@@ -44,8 +59,23 @@ const tarefasController = {
     res.status(201).json(tarefaModel.adicionar(req.body));
   },
 
-
   atualizar(req, res) {
+    const { prioridade, coluna } = req.body;
+
+    // 1. Validar prioridade se ela for enviada no PUT
+    if (prioridade && !PRIORIDADES_VALIDAS.includes(prioridade)) {
+      return res.status(400).json({
+        erro: "Prioridade inválida. Use: alta, media ou baixa",
+      });
+    }
+
+    // 2. Validar coluna se ela for enviada no PUT
+    if (coluna && !COLUNAS_VALIDAS.includes(coluna)) {
+      return res.status(400).json({
+        erro: "Coluna inválida. Use: afazer, andamento ou concluido",
+      });
+    }
+
     const atualizada = tarefaModel.atualizar(parseInt(req.params.id), req.body);
 
     if (!atualizada)
@@ -54,7 +84,6 @@ const tarefasController = {
     res.json(atualizada);
   },
 
- 
   remover(req, res) {
     const removida = tarefaModel.remover(parseInt(req.params.id));
 
