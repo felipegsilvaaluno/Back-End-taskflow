@@ -28,9 +28,22 @@ let tarefas = [
 let proximoId = 4;
 
 module.exports = {
-  listar: () => tarefas,
 
-  listarPorColuna: (coluna) => tarefas.filter((t) => t.coluna === coluna),
+  listar: ({ coluna, prioridade } = {}) => {
+    let resultado = tarefas;
+
+    if (coluna) {
+      resultado = resultado.filter((t) => (t.coluna || "afazer") === coluna);
+    }
+    if (prioridade) {
+      resultado = resultado.filter((t) => t.prioridade === prioridade);
+    }
+
+    return resultado;
+  },
+
+  listarPorColuna: (coluna) =>
+    tarefas.filter((t) => (t.coluna || "afazer") === coluna),
 
   listarPorPrioridade: (prioridade) =>
     tarefas.filter((t) => t.prioridade === prioridade),
@@ -44,7 +57,7 @@ module.exports = {
       prioridade: prioridade || "media",
       coluna: coluna || "afazer",
       cidade: cidade || "",
-      usuarioId: usuarioId,
+      usuarioId,
     };
     tarefas.push(nova);
     return nova;
@@ -52,19 +65,48 @@ module.exports = {
 
   atualizar: (id, dados) => {
     const idx = tarefas.findIndex((t) => t.id === id);
-
     if (idx === -1) return null;
 
     tarefas[idx] = { ...tarefas[idx], ...dados, id };
-
     return tarefas[idx];
   },
 
   remover: (id) => {
     const idx = tarefas.findIndex((t) => t.id === id);
-
     if (idx === -1) return null;
 
     return tarefas.splice(idx, 1)[0];
+  },
+
+
+  obterEstatisticas: (coluna) => {
+    const base = coluna
+      ? tarefas.filter((t) => (t.coluna || "afazer") === coluna)
+      : tarefas;
+
+    const total = base.length;
+
+    const porColuna = {
+      afazer: base.filter((t) => (t.coluna || "afazer") === "afazer").length,
+      andamento: base.filter((t) => t.coluna === "andamento").length,
+      concluido: base.filter((t) => t.coluna === "concluido").length,
+    };
+
+    const porPrioridade = {
+      alta: base.filter((t) => t.prioridade === "alta").length,
+      media: base.filter((t) => t.prioridade === "media").length,
+      baixa: base.filter((t) => t.prioridade === "baixa").length,
+    };
+
+    const colunaMaisTarefas = Object.entries(porColuna).sort(
+      (a, b) => b[1] - a[1],
+    )[0][0];
+
+    return {
+      total,
+      porColuna,
+      porPrioridade,
+      colunaMaisTarefas,
+    };
   },
 };
