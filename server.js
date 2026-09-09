@@ -1,6 +1,7 @@
 const logger = require("./src/middlewares/logger");
 const validarContentType = require("./src/middlewares/validarContentType");
 const temporizador = require("./src/middlewares/temporizador");
+// const cors = require("./src/middlewares/cors");
 const express = require("express");
 
 const tarefasRoutes = require("./src/routes/tarefas.routes");
@@ -8,12 +9,21 @@ const usuariosRoutes = require("./src/routes/usuarios.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
 
 const app = express();
+const cors = requere('cors')
 const PORTA = 3000;
+
+app.user(cors ({
+    origin: process.env.CORS_ORIN || "https://www.google.com/",
+
+
+}));
+
 
 app.use(express.json());
 app.use(validarContentType);
 app.use(logger);
 app.use(temporizador);
+// app.use(cors);
 
 // Lista usuarios -----------------------------------------
 app.use("/usuarios", usuariosRoutes);
