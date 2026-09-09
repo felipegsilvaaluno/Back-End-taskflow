@@ -31,12 +31,25 @@ let tarefas = [
 let proximoId = 4;
 
 module.exports = {
-  listar: ({ coluna, prioridade } = {}) => {
+  listar: ({ coluna, prioridade, usuarioId } = {}) => {
+    if (usuarioId !== undefined) {
+      const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
+
+      if (!usuarioExiste) {
+        return [];
+      }
+    }
+
     let resultado = tarefas;
+
+    if (usuarioId !== undefined) {
+      resultado = resultado.filter((t) => t.usuarioId === parseInt(usuarioId));
+    }
 
     if (coluna) {
       resultado = resultado.filter((t) => (t.coluna || "afazer") === coluna);
     }
+
     if (prioridade) {
       resultado = resultado.filter((t) => t.prioridade === prioridade);
     }
