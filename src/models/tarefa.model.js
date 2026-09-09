@@ -6,6 +6,7 @@ let tarefas = [
     coluna: "andamento",
     cidade: "",
     usuarioId: 1,
+    concluidaEm: null,
   },
   {
     id: 2,
@@ -14,6 +15,7 @@ let tarefas = [
     coluna: "andamento",
     cidade: "",
     usuarioId: 1,
+    concluidaEm: null,
   },
   {
     id: 3,
@@ -22,6 +24,7 @@ let tarefas = [
     coluna: "concluido",
     cidade: "",
     usuarioId: 1,
+    concluidaEm: "2026-03-01T10:00:00.000Z",
   },
 ];
 
@@ -65,6 +68,7 @@ module.exports = {
       coluna: coluna || "afazer",
       cidade: cidade || "",
       usuarioId,
+      concluidaEm: novaColuna === "concluido" ? new Date().toISOString() : null,
     };
     tarefas.push(nova);
     return nova;
@@ -74,7 +78,23 @@ module.exports = {
     const idx = tarefas.findIndex((t) => t.id === id);
     if (idx === -1) return null;
 
-    tarefas[idx] = { ...tarefas[idx], ...dados, id };
+    let concluidaEm = tarefas[idx].concluidaEm || null;
+
+    if (dados.coluna !== undefined) {
+      if (dados.coluna === "concluido") {
+        concluidaEm = new Date().toISOString();
+      } else {
+        concluidaEm = null;
+      }
+    }
+
+    tarefas[idx] = {
+      ...tarefas[idx],
+      ...dados,
+      id,
+      concluidaEm,
+    };
+
     return tarefas[idx];
   },
 
