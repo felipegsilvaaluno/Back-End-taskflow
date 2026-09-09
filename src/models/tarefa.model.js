@@ -52,6 +52,11 @@ module.exports = {
   contarPorUsuario: (usuarioId) =>
     tarefas.filter((t) => t.usuarioId === usuarioId).length,
 
+  contarPorUsuarioEColuna: (usuarioId, coluna) =>
+    tarefas.filter(
+      (t) => t.usuarioId === usuarioId && (t.coluna || "afazer") === coluna,
+    ).length,
+
   adicionar: ({ texto, prioridade, coluna, cidade, usuarioId }) => {
     const nova = {
       id: proximoId++,

@@ -35,18 +35,34 @@ const tarefasController = {
       });
     }
 
-    const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
-    if (!usuarioExiste) {
-      return res.status(400).json({ erro: "Usuário não encontrado" });
-    }
+    if (usuarioId) {
+      const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
+      if (!usuarioExiste) {
+        return res.status(400).json({ erro: "Usuário não encontrado" });
+      }
 
-    req.body.usuarioId = parseInt(usuarioId);
+      if (coluna === "andamento") {
+        const totalAndamento = tarefaModel.contarPorUsuarioEColuna(
+          parseInt(usuarioId),
+          "andamento",
+        );
+
+        if (totalAndamento >= 2) {
+          return res.status(400).json({
+            erro: "Limite de 2 tarefas em andamento por usuário atingido",
+          });
+        }
+      }
+
+      req.body.usuarioId = parseInt(usuarioId);
+    }
 
     res.status(201).json(tarefaModel.adicionar(req.body));
   },
 
   atualizar(req, res) {
-    const { prioridade, coluna } = req.body;
+    const id = parseInt(req.params.id);
+    const { prioridade, coluna, usuarioId } = req.body;
 
     if (prioridade && !PRIORIDADES_VALIDAS.includes(prioridade)) {
       return res.status(400).json({
@@ -60,11 +76,33 @@ const tarefasController = {
       });
     }
 
-    const atualizada = tarefaModel.atualizar(parseInt(req.params.id), req.body);
-
-    if (!atualizada)
+    const tarefaAtual = tarefaModel.buscar(id);
+    if (!tarefaAtual) {
       return res.status(404).json({ erro: "Tarefa não encontrada" });
+    }
 
+    const idUsuarioEfetivo = usuarioId
+      ? parseInt(usuarioId)
+      : tarefaAtual.usuarioId;
+
+    if (
+      idUsuarioEfetivo &&
+      coluna === "andamento" &&
+      tarefaAtual.coluna !== "andamento"
+    ) {
+      const totalAndamento = tarefaModel.contarPorUsuarioEColuna(
+        idUsuarioEfetivo,
+        "andamento",
+      );
+
+      if (totalAndamento >= 2) {
+        return res.status(400).json({
+          erro: "Limite de 2 tarefas em andamento por usuário atingido",
+        });
+      }
+    }
+
+    const atualizada = tarefaModel.atualizar(id, req.body);
     res.json(atualizada);
   },
 
