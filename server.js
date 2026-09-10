@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const logger = require("./src/middlewares/logger");
 const validarContentType = require("./src/middlewares/validarContentType");
 const temporizador = require("./src/middlewares/temporizador");
@@ -9,15 +11,17 @@ const usuariosRoutes = require("./src/routes/usuarios.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
 
 const app = express();
-const cors = requere('cors')
-const PORTA = 3000;
+const cors = requere("cors");
+const PORTA = process.env.PORTA || 3000;
 
-app.user(cors ({
+app.use(
+  cors({
     origin: process.env.CORS_ORIN || "https://www.google.com/",
-
-
-}));
-
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    maxAge: 86400,
+  }),
+);
 
 app.use(express.json());
 app.use(validarContentType);
