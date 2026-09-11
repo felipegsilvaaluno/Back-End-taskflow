@@ -18,7 +18,6 @@ function validar(schema) {
         erros.push(`O campo '${campo}' deve ser do tipo ${regras.tipo}`);
       }
       
-
       // 3 — Valor fora dos permitidos (enum)
       if (regras.enum && !regras.enum.includes(valor)) {
         erros.push(

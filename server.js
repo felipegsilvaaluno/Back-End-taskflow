@@ -9,6 +9,7 @@ const express = require("express");
 const tarefasRoutes = require("./src/routes/tarefas.routes");
 const usuariosRoutes = require("./src/routes/usuarios.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
+const authRoutes = require("./src/routes/auth.routes");
 
 const app = express();
 const cors = require("cors");
@@ -28,6 +29,9 @@ app.use(validarContentType);
 app.use(logger);
 app.use(temporizador);
 // app.use(cors);
+
+
+app.use("/auth", authRoutes);
 
 // Lista usuarios -----------------------------------------
 app.use("/usuarios", usuariosRoutes);
