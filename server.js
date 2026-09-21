@@ -18,7 +18,7 @@ const PORTA = process.env.PORTA || 3000;
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "https://www.google.com/",
+    origin: process.env.CORS_ORIGIN || "https://react-ten-liart-60.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     maxAge: 86400,

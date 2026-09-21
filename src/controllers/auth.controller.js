@@ -23,7 +23,6 @@ const authController = {
     if (usuario.senha !== senha)
       return res
         .status(401)
-
         .json({ erro: "Credenciais inválidas" });
 
     // 3. Gerar o token JWT

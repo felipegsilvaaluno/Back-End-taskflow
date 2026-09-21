@@ -23,22 +23,6 @@ const tarefasController = {
 
     const usuarioId = req.usuario.id;
 
-    // if (!texto) {
-    //   return res.status(400).json({ erro: "Texto obrigatório" });
-    // }
-
-    // if (prioridade && !PRIORIDADES_VALIDAS.includes(prioridade)) {
-    //   return res.status(400).json({
-    //     erro: "Prioridade inválida. Use: alta, media ou baixa",
-    //   });
-    // }
-
-    // if (coluna && !COLUNAS_VALIDAS.includes(coluna)) {
-    //   return res.status(400).json({
-    //     erro: "Coluna inválida. Use: afazer, andamento ou concluido",
-    //   });
-    // }
-
     const usuarioExiste = usuarioModel.buscar(usuarioId);
 
     if (!usuarioExiste) {
