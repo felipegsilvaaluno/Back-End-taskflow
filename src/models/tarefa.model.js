@@ -1,61 +1,72 @@
-let tarefas = [
-  {
-    id: 1,
-    texto: "Estudar Node",
-    prioridade: "alta",
-    coluna: "andamento",
-    cidade: "",
-    usuarioId: 1,
-    concluidaEm: null,
-  },
-  {
-    id: 2,
-    texto: "Criar API",
-    prioridade: "alta",
-    coluna: "andamento",
-    cidade: "",
-    usuarioId: 1,
-    concluidaEm: null,
-  },
-  {
-    id: 3,
-    texto: "Testar Postman",
-    prioridade: "media",
-    coluna: "concluido",
-    cidade: "",
-    usuarioId: 1,
-    concluidaEm: "2026-03-01T10:00:00.000Z",
-  },
-];
+const pool = require('../database/db');
 
-let proximoId = 4;
+// let tarefas = [
+//   {
+//     id: 1,
+//     texto: "Estudar Node",
+//     prioridade: "alta",
+//     coluna: "andamento",
+//     cidade: "",
+//     usuarioId: 1,
+//     concluidaEm: null,
+//   },
+//   {
+//     id: 2,
+//     texto: "Criar API",
+//     prioridade: "alta",
+//     coluna: "andamento",
+//     cidade: "",
+//     usuarioId: 1,
+//     concluidaEm: null,
+//   },
+//   {
+//     id: 3,
+//     texto: "Testar Postman",
+//     prioridade: "media",
+//     coluna: "concluido",
+//     cidade: "",
+//     usuarioId: 1,
+//     concluidaEm: "2026-03-01T10:00:00.000Z",
+//   },
+// ];
+
+// let proximoId = 4;
 
 module.exports = {
-  listar: ({ coluna, prioridade, usuarioId } = {}) => {
-    if (usuarioId !== undefined) {
-      const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
+  // listar: ({ coluna, prioridade, usuarioId } = {}) => {
+  //   if (usuarioId !== undefined) {
+  //     const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
 
-      if (!usuarioExiste) {
-        return [];
-      }
-    }
+  //     if (!usuarioExiste) {
+  //       return [];
+  //     }
+  //   }
 
-    let resultado = tarefas;
+  //   let resultado = tarefas;
 
-    if (usuarioId !== undefined) {
-      resultado = resultado.filter((t) => t.usuarioId === parseInt(usuarioId));
-    }
+  //   if (usuarioId !== undefined) {
+  //     resultado = resultado.filter((t) => t.usuarioId === parseInt(usuarioId));
+  //   }
 
-    if (coluna) {
-      resultado = resultado.filter((t) => (t.coluna || "afazer") === coluna);
-    }
+  //   if (coluna) {
+  //     resultado = resultado.filter((t) => (t.coluna || "afazer") === coluna);
+  //   }
 
-    if (prioridade) {
-      resultado = resultado.filter((t) => t.prioridade === prioridade);
-    }
+  //   if (prioridade) {
+  //     resultado = resultado.filter((t) => t.prioridade === prioridade);
+  //   }
 
-    return resultado;
+  //   return resultado;
+  // },
+
+  listar: async () => {
+    const result = await pool.query(
+      'SELECT * FROM tarefas ORDER BY id'
+    );
+    return result.rows;
+
   },
+
 
   listarPorColuna: (coluna) =>
     tarefas.filter((t) => (t.coluna || "afazer") === coluna),
@@ -63,7 +74,15 @@ module.exports = {
   listarPorPrioridade: (prioridade) =>
     tarefas.filter((t) => t.prioridade === prioridade),
 
-  buscar: (id) => tarefas.find((t) => t.id === id),
+  // buscar: (id) => tarefas.find((t) => t.id === id),
+
+  buscar: async (id) => {
+    const result = await pool.query(
+      'SELECT * FROM tarefas WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] || null;
+  },
 
   contarPorUsuario: (usuarioId) =>
     tarefas.filter((t) => t.usuarioId === usuarioId).length,
@@ -73,23 +92,47 @@ module.exports = {
       (t) => t.usuarioId === usuarioId && (t.coluna || "afazer") === coluna,
     ).length,
 
-  adicionar: ({ texto, prioridade, coluna, cidade, usuarioId }) => {
-    const novaColuna = coluna || "afazer";
+  // adicionar: ({ texto, prioridade, coluna, cidade, usuarioId }) => {
+  //   const novaColuna = coluna || "afazer";
 
-    const nova = {
-      id: proximoId++,
-      texto,
-      prioridade: prioridade || "media",
-      coluna: novaColuna,
-      cidade: cidade || "",
-      usuarioId,
-      concluidaEm:
-        novaColuna === "concluido" ? new Date().toISOString() : null,
+  //   const nova = {
+  //     id: proximoId++,
+  //     texto,
+  //     prioridade: prioridade || "media",
+  //     coluna: novaColuna,
+  //     cidade: cidade || "",
+  //     usuarioId,
+  //     concluidaEm:
+  //       novaColuna === "concluido" ? new Date().toISOString() : null,
 
-    };
+  //   };
 
-    tarefas.push(nova);
-    return nova;
+  //   tarefas.push(nova);
+  //   return nova;
+  // },
+
+  adicionar: async ({
+    texto,
+    id_prioridade,
+    coluna,
+    usuarioId,
+    projetoId
+  }) => {
+    const result = await pool.query(
+      `INSERT INTO tarefas
+      (texto, id_prioridade, coluna, usuario_id, projeto_id)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING *`,
+      [
+        texto,
+        id_prioridade,
+        coluna || "afazer",
+        usuarioId,
+        projetoId
+      ]
+    );
+
+    return result.rows[0];
   },
 
   atualizar: (id, dados) => {

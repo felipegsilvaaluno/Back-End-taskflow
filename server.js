@@ -5,6 +5,9 @@ const validarContentType = require("./src/middlewares/validarContentType");
 const temporizador = require("./src/middlewares/temporizador");
 const autenticar = require("./src/middlewares/autenticar");
 // const cors = require("./src/middlewares/cors");
+
+const pool = require('./src/database/db');
+
 const express = require("express");
 
 const tarefasRoutes = require("./src/routes/tarefas.routes");
@@ -16,9 +19,14 @@ const app = express();
 const cors = require("cors");
 const PORTA = process.env.PORTA || 3000;
 
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) console.error('Erro ao conectar:', err.message);
+  else console.log('Banco conectado:', res.rows[0].now);
+});
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "https://react-ten-liart-60.vercel.app",
+    origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     maxAge: 86400,

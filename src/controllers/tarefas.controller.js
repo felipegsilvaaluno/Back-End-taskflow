@@ -2,54 +2,145 @@ const tarefaModel = require("../models/tarefa.model");
 const usuarioModel = require("../models/usuario.model");
 
 const PRIORIDADES_VALIDAS = ["alta", "media", "baixa"];
+
+const PRIORIDADE_IDS = {
+  baixa: 3,
+  media: 5,
+  alta: 6,
+};
+
 const COLUNAS_VALIDAS = ["afazer", "andamento", "concluido"];
 
 const tarefasController = {
-  listar(req, res) {
-    const resultado = tarefaModel.listar(req.query);
-    res.json(resultado);
-  },
+  async listar(req, res) {
+    try {
+      const resultado = await tarefaModel.listar(req.query);
 
-  buscarPorId(req, res) {
-    const tarefa = tarefaModel.buscar(parseInt(req.params.id));
+      return res.json(resultado);
+    } catch (error) {
+      console.error('Erro ao listar tarefas:', error);
 
-    if (!tarefa) return res.status(404).json({ erro: "Tarefa não encontrada" });
-
-    res.json(tarefa);
-  },
-
-  criar(req, res) {
-    const { texto, prioridade, coluna } = req.body;
-
-    const usuarioId = req.usuario.id;
-
-    const usuarioExiste = usuarioModel.buscar(usuarioId);
-
-    if (!usuarioExiste) {
-      return res.status(400).json({
-        erro: "Usuário não encontrado",
+      return res.status(500).json({
+        erro: 'Erro ao buscar tarefas'
       });
     }
+  },
 
-    if (coluna === "andamento") {
-      const totalAndamento = tarefaModel.contarPorUsuarioEColuna(
-        usuarioId,
-        "andamento",
-      );
+  async buscarPorId(req, res) {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const tarefa = await tarefaModel.buscar(id);
 
-      if (totalAndamento >= 2) {
-        return res.status(400).json({
-          erro: "Limite de 2 tarefas em andamento por usuário atingido",
+      if (!tarefa) {
+        return res.status(404).json({
+          erro: "Tarefa não encontrada"
         });
       }
+
+      return res.json(tarefa);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        erro: "Erro ao buscar tarefa"
+      });
     }
+  },
 
-    const tarefa = tarefaModel.adicionar({
-      ...req.body,
-      usuarioId,
-    });
+  async criar(req, res) {
+    try {
+      const {
+        texto,
+        prioridade,
+        coluna,
+        projetoId,
+        projeto_id
+      } = req.body;
 
-    res.status(201).json(tarefa);
+      const usuarioId = req.usuario.id;
+
+      // 1. Validar texto
+      if (!texto || typeof texto !== "string") {
+        return res.status(400).json({
+          erro: "O texto da tarefa é obrigatório",
+        });
+      }
+
+      // 2. Validar prioridade
+      if (
+        prioridade &&
+        !PRIORIDADES_VALIDAS.includes(prioridade)
+      ) {
+        return res.status(400).json({
+          erro: "Prioridade inválida. Use alta, media ou baixa",
+        });
+      }
+
+      // 3. Validar coluna
+      if (
+        coluna &&
+        !COLUNAS_VALIDAS.includes(coluna)
+      ) {
+        return res.status(400).json({
+          erro: "Coluna inválida",
+        });
+      }
+
+      // 4. Converter prioridade para o ID do banco
+      const PRIORIDADE_IDS = {
+        baixa: 3,
+        media: 5,
+        alta: 6,
+      };
+
+      const id_prioridade =
+        PRIORIDADE_IDS[prioridade || "media"];
+
+      // 5. Verificar se o usuário existe
+      const usuarioExiste = await usuarioModel.buscar(usuarioId);
+
+      if (!usuarioExiste) {
+        return res.status(400).json({
+          erro: "Usuário não encontrado",
+        });
+      }
+
+      // 6. Definir coluna padrão
+      const colunaFinal = coluna || "afazer";
+
+      // 7. Limitar tarefas em andamento
+      if (colunaFinal === "andamento") {
+        const totalAndamento =
+          await tarefaModel.contarPorUsuarioEColuna(
+            usuarioId,
+            "andamento"
+          );
+
+        if (totalAndamento >= 2) {
+          return res.status(400).json({
+            erro: "Limite de 2 tarefas em andamento por usuário atingido",
+          });
+        }
+      }
+
+      // 8. Criar tarefa
+      const tarefa = await tarefaModel.adicionar({
+        texto,
+        id_prioridade,
+        coluna: colunaFinal,
+        usuarioId,
+        projetoId: projetoId ?? projeto_id,
+      });
+
+      // 9. Retornar tarefa criada
+      return res.status(201).json(tarefa);
+
+    } catch (error) {
+      console.error("Erro ao criar tarefa:", error);
+
+      return res.status(500).json({
+        erro: "Erro ao criar tarefa",
+      });
+    }
   },
 
   atualizar(req, res) {
