@@ -135,35 +135,57 @@ module.exports = {
     return result.rows[0];
   },
 
-  atualizar: (id, dados) => {
-    const idx = tarefas.findIndex((t) => t.id === id);
-    if (idx === -1) return null;
+  // atualizar: (id, dados) => {
+  //   const idx = tarefas.findIndex((t) => t.id === id);
+  //   if (idx === -1) return null;
 
-    let concluidaEm = tarefas[idx].concluidaEm || null;
+  //   let concluidaEm = tarefas[idx].concluidaEm || null;
 
-    if (dados.coluna !== undefined) {
-      if (dados.coluna === "concluido") {
-        concluidaEm = new Date().toISOString();
-      } else {
-        concluidaEm = null;
-      }
-    }
+  //   if (dados.coluna !== undefined) {
+  //     if (dados.coluna === "concluido") {
+  //       concluidaEm = new Date().toISOString();
+  //     } else {
+  //       concluidaEm = null;
+  //     }
+  //   }
 
-    tarefas[idx] = {
-      ...tarefas[idx],
-      ...dados,
-      id,
-      concluidaEm,
-    };
+  //   tarefas[idx] = {
+  //     ...tarefas[idx],
+  //     ...dados,
+  //     id,
+  //     concluidaEm,
+  //   };
 
-    return tarefas[idx];
+  //   return tarefas[idx];
+  // },
+
+  atualizar: async (id, dados) => {
+    const { texto, id_prioridade, coluna, usuarioId } = dados;
+
+    const result = await pool.query(
+      `UPDATE tarefas 
+     SET texto = COALESCE($1, texto),
+         id_prioridade = COALESCE($2, id_prioridade),
+         coluna = COALESCE($3, coluna),
+         usuario_id = COALESCE($4, usuario_id)
+     WHERE id = $5 
+     RETURNING *`,
+      [texto, id_prioridade, coluna, usuarioId, id]
+    );
+
+    return result.rows[0] || null;
   },
 
-  remover: (id) => {
-    const idx = tarefas.findIndex((t) => t.id === id);
-    if (idx === -1) return null;
+  // remover: (id) => {
+  //   const idx = tarefas.findIndex((t) => t.id === id);
+  //   if (idx === -1) return null;
 
-    return tarefas.splice(idx, 1)[0];
+  //   return tarefas.splice(idx, 1)[0];
+  // },
+
+  remover: async (id) => {
+    const result = await pool.query('DELETE FROM tarefas WHERE id=$1 RETURNING *', [id]);
+    return result.rows[0] || null;
   },
 
   obterEstatisticas: (coluna) => {
