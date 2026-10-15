@@ -40,7 +40,6 @@ const tarefasController = {
 
     const usuarioId = req.usuario.id;
 
-    // Garante que usa "media" como padrão caso a prioridade não seja enviada no Body
     const id_prioridade = PRIORIDADE_IDS[prioridade || "media"];
 
     const colunaFinal = coluna || "afazer";

@@ -19,7 +19,7 @@ router.post("/", validar(schemas.tarefa), tarefasController.criar);
 
 //--------------------------------------------------------------
 
-router.get("/:id", tarefasController.buscarPorId);
+router.get("/:id", validar(schemas.tarefa), tarefasController.buscarPorId);
 
 //--------------------------------------------------------------
 

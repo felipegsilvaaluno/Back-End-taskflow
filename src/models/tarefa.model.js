@@ -67,7 +67,6 @@ module.exports = {
     return parseInt(result.rows[0].count, 10);
   },
     
-
   adicionar: async ({
     texto,
     id_prioridade,
