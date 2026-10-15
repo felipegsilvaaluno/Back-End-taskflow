@@ -33,40 +33,12 @@ const pool = require('../database/db');
 // let proximoId = 4;
 
 module.exports = {
-  // listar: ({ coluna, prioridade, usuarioId } = {}) => {
-  //   if (usuarioId !== undefined) {
-  //     const usuarioExiste = usuarioModel.buscar(parseInt(usuarioId));
-
-  //     if (!usuarioExiste) {
-  //       return [];
-  //     }
-  //   }
-
-  //   let resultado = tarefas;
-
-  //   if (usuarioId !== undefined) {
-  //     resultado = resultado.filter((t) => t.usuarioId === parseInt(usuarioId));
-  //   }
-
-  //   if (coluna) {
-  //     resultado = resultado.filter((t) => (t.coluna || "afazer") === coluna);
-  //   }
-
-  //   if (prioridade) {
-  //     resultado = resultado.filter((t) => t.prioridade === prioridade);
-  //   }
-
-  //   return resultado;
-  // },
-
   listar: async () => {
     const result = await pool.query(
       'SELECT * FROM tarefas ORDER BY id'
     );
     return result.rows;
-
   },
-
 
   listarPorColuna: (coluna) =>
     tarefas.filter((t) => (t.coluna || "afazer") === coluna),
@@ -87,29 +59,14 @@ module.exports = {
   contarPorUsuario: (usuarioId) =>
     tarefas.filter((t) => t.usuarioId === usuarioId).length,
 
-  contarPorUsuarioEColuna: (usuarioId, coluna) =>
-    tarefas.filter(
-      (t) => t.usuarioId === usuarioId && (t.coluna || "afazer") === coluna,
-    ).length,
-
-  // adicionar: ({ texto, prioridade, coluna, cidade, usuarioId }) => {
-  //   const novaColuna = coluna || "afazer";
-
-  //   const nova = {
-  //     id: proximoId++,
-  //     texto,
-  //     prioridade: prioridade || "media",
-  //     coluna: novaColuna,
-  //     cidade: cidade || "",
-  //     usuarioId,
-  //     concluidaEm:
-  //       novaColuna === "concluido" ? new Date().toISOString() : null,
-
-  //   };
-
-  //   tarefas.push(nova);
-  //   return nova;
-  // },
+  contarPorUsuarioEColuna: async (usuarioId, coluna) => {
+    const result = await pool.query(
+      'SELECT COUNT(*) FROM tarefas WHERE usuario_id = $1 AND coluna = $2',
+      [usuarioId, coluna]
+    );
+    return parseInt(result.rows[0].count, 10);
+  },
+    
 
   adicionar: async ({
     texto,
@@ -135,29 +92,6 @@ module.exports = {
     return result.rows[0];
   },
 
-  // atualizar: (id, dados) => {
-  //   const idx = tarefas.findIndex((t) => t.id === id);
-  //   if (idx === -1) return null;
-
-  //   let concluidaEm = tarefas[idx].concluidaEm || null;
-
-  //   if (dados.coluna !== undefined) {
-  //     if (dados.coluna === "concluido") {
-  //       concluidaEm = new Date().toISOString();
-  //     } else {
-  //       concluidaEm = null;
-  //     }
-  //   }
-
-  //   tarefas[idx] = {
-  //     ...tarefas[idx],
-  //     ...dados,
-  //     id,
-  //     concluidaEm,
-  //   };
-
-  //   return tarefas[idx];
-  // },
 
   atualizar: async (id, dados) => {
     const { texto, id_prioridade, coluna, usuarioId } = dados;
@@ -176,12 +110,7 @@ module.exports = {
     return result.rows[0] || null;
   },
 
-  // remover: (id) => {
-  //   const idx = tarefas.findIndex((t) => t.id === id);
-  //   if (idx === -1) return null;
-
-  //   return tarefas.splice(idx, 1)[0];
-  // },
+ 
 
   remover: async (id) => {
     const result = await pool.query('DELETE FROM tarefas WHERE id=$1 RETURNING *', [id]);

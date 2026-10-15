@@ -5,6 +5,7 @@ const validarContentType = require("./src/middlewares/validarContentType");
 const temporizador = require("./src/middlewares/temporizador");
 const autenticar = require("./src/middlewares/autenticar");
 // const cors = require("./src/middlewares/cors");
+const tratarErros = require('./src/middlewares/erro.middleware');
 
 const pool = require('./src/database/db');
 
@@ -52,5 +53,7 @@ app.use((req, res) => {
     erro: "Rota não encontrada",
   });
 });
+
+app.use(tratarErros);
 
 app.listen(PORTA, () => console.log(`Porta ${PORTA}`));
