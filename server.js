@@ -49,9 +49,8 @@ app.use("/tarefas", autenticar, tarefasRoutes);
 app.use("/projetos", autenticar, projetosRoutes);
 // Rota 404
 app.use((req, res) => {
-  res.status(404).json({
-    erro: "Rota não encontrada",
-  });
+  const rota = `${req.method} ${req.url}`;
+  throw criarErro(404, `Rota ${rota} não encontrada`);
 });
 
 app.use(tratarErros);

@@ -1,11 +1,15 @@
 const schemas = {
+  id: {
+    id: { obrigatorio: true, tipo: "inteiro" },
+  },
+
   tarefa: {
     texto: { obrigatorio: true, tipo: "string" },
-    coluna: {
-      obrigatorio: true,
-      tipo: "string",
-      enum: ["afazer", "andamento", "concluido"],
-    },
+    coluna: { obrigatorio: true, tipo: "string",
+      enum: ["afazer", "andamento", "concluido"]},
+    usuario_id: { obrigatorio: true, tipo: "inteiro" },
+    projeto_id: { obrigatorio: true, tipo: "inteiro" },
+    idprioridade: { obrigatorio: true, tipo: "inteiro"},
 
     prioridade: {
       obrigatorio: false,

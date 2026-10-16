@@ -1,6 +1,6 @@
 const tarefaModel = require("../models/tarefa.model");
 const usuarioModel = require("../models/usuario.model");
-const criarErro = require("../utils/criarErro"); // Ajuste o caminho se necessário
+const criarErro = require("../utils/criarErro"); 
 
 const PRIORIDADES_VALIDAS = ["alta", "media", "baixa"];
 
