@@ -9,7 +9,7 @@ const schemas = {
       enum: ["afazer", "andamento", "concluido"]},
     usuario_id: { obrigatorio: true, tipo: "inteiro" },
     projeto_id: { obrigatorio: true, tipo: "inteiro" },
-    idprioridade: { obrigatorio: true, tipo: "inteiro"},
+    id_prioridade: { obrigatorio: true, tipo: "inteiro"},
 
     prioridade: {
       obrigatorio: false,

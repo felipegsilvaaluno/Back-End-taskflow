@@ -1,6 +1,6 @@
 const criarErro = require("../utils/criarErro");
 
-function validar(schema) {
+function validar(schema, origem) {
   return function (req, res, next) {
     const dados = req[origem || 'body'] || {};
     const erros = [];
@@ -19,19 +19,7 @@ function validar(schema) {
       if (ausente) continue;
 
       // 2 — Validação de tipo
-      if (!ausente && regras.tipo && typeof valor !== regras.tipo) {
-        erros.push(`O campo '${campo}' deve ser do tipo ${regras.tipo}`);
-      }
-
-      // 3 — Valor fora dos permitidos (enum)
-      if (regras.enum && !regras.enum.includes(valor)) {
-        erros.push(
-          `O campo '${campo}' deve ser um de: ${regras.enum.join(", ")}`,
-        );
-      }
-
       if (regras.tipo === 'inteiro') {
-        // Na URL tudo chega como texto: '7'
         const numero = typeof valor === 'string' ? Number(valor) :
           valor;
         if (!Number.isInteger(numero) || numero <= 0) {
@@ -41,6 +29,13 @@ function validar(schema) {
       } else if (regras.tipo && typeof valor !== regras.tipo) {
         erros.push(`O campo '${campo}' deve ser do tipo
         ${regras.tipo}`);
+      }
+
+      // 3 — Valor fora dos permitidos (enum)
+      if (regras.enum && !regras.enum.includes(valor)) {
+        erros.push(
+          `O campo '${campo}' deve ser um de: ${regras.enum.join(", ")}`,
+        );
       }
 
         // 4 — Formato de email
