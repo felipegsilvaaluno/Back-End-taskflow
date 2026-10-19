@@ -16,6 +16,7 @@ const tarefasRoutes = require("./src/routes/tarefas.routes");
 const usuariosRoutes = require("./src/routes/usuarios.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
 const authRoutes = require("./src/routes/auth.routes");
+const prioridadeRoutes = require("./src/routes/prioridades.routes")
 
 const app = express();
 const cors = require("cors");
@@ -48,6 +49,8 @@ app.use("/usuarios", autenticar, usuariosRoutes);
 app.use("/tarefas", autenticar, tarefasRoutes);
 // Lista projetos e faz todo CRUD --------------------------
 app.use("/projetos", autenticar, projetosRoutes);
+
+app.use("/prioridades", autenticar, prioridadeRoutes);
 // Rota 404
 app.use((req, res) => {
   const rota = `${req.method} ${req.url}`;
