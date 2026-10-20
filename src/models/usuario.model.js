@@ -1,54 +1,76 @@
-let usuarios = [
-  { id: 1, 
-    nome: "admin", 
-    email: "admin@taskflow.com", 
-    senha: "1234"
-   },
-];
-
-let proximoId = 2;
+const pool = require('../database/db');
 
 module.exports = {
-  listar: ({ nome, email } = {}) => {
-    let resultado = usuarios;
+  listar: async (filtros = {}) => {
+    let sql = 'SELECT id, nome, email, criado_em FROM usuarios WHERE 1=1';
+    const params = [];
 
-    if (nome) {
-      resultado = resultado.filter((u) => u.nome === nome);
+    if (filtros.nome) {
+      params.push(`%${filtros.nome}%`);
+      sql += ` AND nome ILIKE $${params.length}`;
     }
-    if (email) {
-      resultado = resultado.filter((u) => u.email === email);
+
+    if (filtros.email) {
+      params.push(filtros.email);
+      sql += ` AND email = $${params.length}`;
     }
 
-    return resultado;
+    sql += ' ORDER BY id';
+    const result = await pool.query(sql, params);
+    return result.rows;
   },
 
-  buscar: (id) => usuarios.find((u) => u.id === id),
-
-  buscarPorEmail: (email) => usuarios.find((u) => u.email === email),
-
-  adicionar: ({ nome, email, senha }) => {
-    const novo = {
-      id: proximoId++,
-      nome: nome || "felipe",
-      email: email || "admin@taskflow.com",
-      senha: senha || "1223",
-    };
-    usuarios.push(novo);
-    return novo;
+  buscar: async (id) => {
+    const result = await pool.query(
+      'SELECT id, nome, email, criado_em FROM usuarios WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] || null;
   },
 
-  atualizar: (id, dados) => {
-    const idx = usuarios.findIndex((u) => u.id === id);
-    if (idx === -1) return null;
-
-    usuarios[idx] = { id, ...dados };
-    return usuarios[idx];
+  buscarPorEmail: async (email) => {
+    const result = await pool.query(
+      'SELECT * FROM usuarios WHERE email = $1',
+      [email]
+    );
+    return result.rows[0] || null;
   },
 
-  remover: (id) => {
-    const idx = usuarios.findIndex((u) => u.id === id);
-    if (idx === -1) return null;
+  adicionar: async ({ nome, email, senha, senha_hash }) => {
+    const hashParaSalvar = senha_hash || senha || '1234';
 
-    return usuarios.splice(idx, 1)[0];
+    const result = await pool.query(
+      `INSERT INTO usuarios (nome, email, senha_hash, criado_em)
+       VALUES ($1, $2, $3, NOW())
+       RETURNING id, nome, email, criado_em`,
+      [nome, email, hashParaSalvar]
+    );
+
+    return result.rows[0];
+  },
+
+  atualizar: async (id, dados) => {
+    const { nome, email, senha_hash, senha } = dados;
+    const hashParaSalvar = senha_hash || senha;
+
+    const result = await pool.query(
+      `UPDATE usuarios
+       SET nome = COALESCE($1, nome),
+           email = COALESCE($2, email),
+           senha_hash = COALESCE($3, senha_hash)
+       WHERE id = $4
+       RETURNING id, nome, email, criado_em`,
+      [nome, email, hashParaSalvar, id]
+    );
+
+    return result.rows[0] || null;
+  },
+
+  remover: async (id) => {
+    const result = await pool.query(
+      'DELETE FROM usuarios WHERE id = $1 RETURNING id, nome, email',
+      [id]
+    );
+    return result.rows[0] || null;
   },
 };
