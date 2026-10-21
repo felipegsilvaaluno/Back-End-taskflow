@@ -66,7 +66,7 @@ const tarefasController = {
 
   async atualizar(req, res) {
     const id = parseInt(req.params.id, 10);
-    const { texto, prioridade, coluna, usuarioId, projetoId, projeto_id } = req.body;
+    const { texto, prioridade, coluna, usuarioId, usuario_id, projetoId, projeto_id, id_prioridade, idprioridade } = req.body;
 
     if (prioridade && !PRIORIDADES_VALIDAS.includes(prioridade)) {
       throw criarErro(400, "Prioridade inválida. Use: alta, media ou baixa");
@@ -81,10 +81,12 @@ const tarefasController = {
       throw criarErro(404, "Tarefa não encontrada");
     }
 
-    const idUsuarioEfetivo = usuarioId ? parseInt(usuarioId, 10) : tarefaAtual.usuario_id;
+    const idUsuarioEfetivo = (usuarioId || usuario_id)
+      ? parseInt(usuarioId || usuario_id, 10)
+      : tarefaAtual.usuario_id;
+
     const novaColuna = coluna || tarefaAtual.coluna;
 
-    // Validação do limite de tarefas em andamento
     if (idUsuarioEfetivo && novaColuna === "andamento" && tarefaAtual.coluna !== "andamento") {
       const totalAndamento = await tarefaModel.contarPorUsuarioEColuna(idUsuarioEfetivo, "andamento");
       if (totalAndamento >= 2) {
@@ -92,21 +94,21 @@ const tarefasController = {
       }
     }
 
-    const idPrioridadeEfetivo = prioridade && PRIORIDADE_IDS[prioridade]
+    const idPrioridadeEfetivo = (prioridade && PRIORIDADE_IDS[prioridade])
       ? PRIORIDADE_IDS[prioridade]
-      : tarefaAtual.id_prioridade;
+      : (id_prioridade || idprioridade || tarefaAtual.id_prioridade);
 
     const dadosParaAtualizar = {
       texto: texto !== undefined ? texto : tarefaAtual.texto,
       coluna: novaColuna,
       usuario_id: idUsuarioEfetivo,
       projeto_id: projetoId ?? projeto_id ?? tarefaAtual.projeto_id,
-      idprioridade: idPrioridadeEfetivo
+      id_prioridade: idPrioridadeEfetivo
     };
 
     const atualizada = await tarefaModel.atualizar(id, dadosParaAtualizar);
     return res.json(atualizada);
-  }, 
+  },
 
   async remover(req, res) {
     const id = parseInt(req.params.id, 10);
