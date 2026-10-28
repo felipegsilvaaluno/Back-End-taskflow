@@ -1,76 +1,112 @@
-const pool = require('../database/db');
+const prisma = require('../database/prisma');
+
+// Seleção de campos seguros para não expor a senha_hash
+const camposSeguros = {
+  id: true,
+  nome: true,
+  email: true,
+  criado_em: true,
+};
 
 module.exports = {
   listar: async (filtros = {}) => {
-    let sql = 'SELECT id, nome, email, criado_em FROM usuarios WHERE 1=1';
-    const params = [];
+    const where = {};
 
     if (filtros.nome) {
-      params.push(`%${filtros.nome}%`);
-      sql += ` AND nome ILIKE $${params.length}`;
+      where.nome = {
+        contains: filtros.nome,
+        mode: 'insensitive', // Equivale ao ILIKE
+      };
     }
 
     if (filtros.email) {
-      params.push(filtros.email);
-      sql += ` AND email = $${params.length}`;
+      where.email = filtros.email;
     }
 
-    sql += ' ORDER BY id';
-    const result = await pool.query(sql, params);
-    return result.rows;
+    const lista = await prisma.usuarios.findMany({
+      where,
+      select: camposSeguros,
+      orderBy: { id: 'asc' },
+    });
+
+    return lista;
   },
 
   buscar: async (id) => {
-    const result = await pool.query(
-      'SELECT id, nome, email, criado_em FROM usuarios WHERE id = $1',
-      [id]
-    );
-    return result.rows[0] || null;
+    const usuario = await prisma.usuarios.findUnique({
+      where: { id: Number(id) },
+      select: camposSeguros,
+    });
+
+    return usuario;
   },
 
   buscarPorEmail: async (email) => {
-    const result = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1',
-      [email]
-    );
-    return result.rows[0] || null;
+    // Traz a senha_hash para permitir a verificação de login/autenticação no controller
+    const usuario = await prisma.usuarios.findUnique({
+      where: { email },
+    });
+
+    return usuario;
   },
 
-  adicionar: async ({ nome, email, senha, senha_hash }) => {
-    const hashParaSalvar = senha_hash || senha || '1234';
+  adicionar: async (dados) => {
+    const hashParaSalvar = dados.senha_hash || dados.senha || '1234';
 
-    const result = await pool.query(
-      `INSERT INTO usuarios (nome, email, senha_hash, criado_em)
-       VALUES ($1, $2, $3, NOW())
-       RETURNING id, nome, email, criado_em`,
-      [nome, email, hashParaSalvar]
-    );
+    const novoUsuario = await prisma.usuarios.create({
+      data: {
+        nome: dados.nome,
+        email: dados.email,
+        senha_hash: hashParaSalvar,
+        criado_em: new Date(),
+      },
+      select: camposSeguros,
+    });
 
-    return result.rows[0];
+    return novoUsuario;
   },
 
   atualizar: async (id, dados) => {
-    const { nome, email, senha_hash, senha } = dados;
-    const hashParaSalvar = senha_hash || senha;
+    const idNum = Number(id);
 
-    const result = await pool.query(
-      `UPDATE usuarios
-       SET nome = COALESCE($1, nome),
-           email = COALESCE($2, email),
-           senha_hash = COALESCE($3, senha_hash)
-       WHERE id = $4
-       RETURNING id, nome, email, criado_em`,
-      [nome, email, hashParaSalvar, id]
-    );
+    // 1. Verifica se o usuário existe
+    const usuarioAtual = await prisma.usuarios.findUnique({
+      where: { id: idNum },
+    });
 
-    return result.rows[0] || null;
+    if (!usuarioAtual) return null;
+
+    const hashParaSalvar = dados.senha_hash || dados.senha;
+
+    // 2. Atualiza os dados usando undefined para campos não informados (mantém o valor atual)
+    const usuarioAtualizado = await prisma.usuarios.update({
+      where: { id: idNum },
+      data: {
+        nome: dados.nome ?? undefined,
+        email: dados.email ?? undefined,
+        senha_hash: hashParaSalvar ?? undefined,
+      },
+      select: camposSeguros,
+    });
+
+    return usuarioAtualizado;
   },
 
   remover: async (id) => {
-    const result = await pool.query(
-      'DELETE FROM usuarios WHERE id = $1 RETURNING id, nome, email',
-      [id]
-    );
-    return result.rows[0] || null;
+    try {
+      const usuarioRemovido = await prisma.usuarios.delete({
+        where: { id: Number(id) },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+        },
+      });
+
+      return usuarioRemovido;
+    } catch (error) {
+      if (error.code === 'P2025') return null;
+      throw error;
+    }
   },
 };

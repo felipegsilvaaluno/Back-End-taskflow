@@ -1,10 +1,10 @@
 const prisma = require('../database/prisma');
 
-// os dois JOINs: só o nome de cada um
+// os três JOINs: só o nome/descrição de cada um
 const incluirNomes = {
   projetos: { select: { nome: true } },
   usuarios: { select: { nome: true } },
-  prioridades: {select: {descricao: true}}
+  prioridades: { select: { descricao: true } },
 };
 
 // formata a tarefa para manter o contrato da API
@@ -65,6 +65,7 @@ module.exports = {
 
     return total;
   },
+
   adicionar: async (dados) => {
     const colunaFinal = dados.coluna || "afazer";
     const agora = new Date();
@@ -115,15 +116,16 @@ module.exports = {
       data: {
         texto: dados.texto,
         coluna: dados.coluna,
-        usuario_id: Number(dados.usuario_id),
-        projeto_id: Number(dados.projeto_id),
-        id_prioridade: Number(dados.id_prioridade ?? dados.idprioridade),
+        usuario_id: Number(dados.usuario_id ?? dados.usuarioId),
+        projeto_id: Number(dados.projeto_id ?? dados.projetoId),
+        id_prioridade: Number(dados.id_prioridade ?? dados.idPrioridade) || 2,
         concluida_em: concluidaEm,
         iniciada_em: iniciadaEm,
       },
+      include: incluirNomes,
     });
 
-    return tarefaAtualizada;
+    return formatarTarefa(tarefaAtualizada);
   },
 
   remover: async (id) => {
@@ -138,7 +140,7 @@ module.exports = {
       if (error.code === 'P2025') return null;
       throw error;
     }
-  } ,
+  },
 
   obterEstatisticas: async (colunaFiltro) => {
     const where = {};

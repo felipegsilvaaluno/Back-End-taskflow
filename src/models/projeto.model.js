@@ -1,70 +1,112 @@
-const pool = require('../database/db');
+const prisma = require('../database/prisma');
+
+// JOIN para trazer apenas o nome do usuário dono do projeto
+const incluirNomes = {
+  usuarios: { select: { nome: true } },
+};
+
+// Formata o retorno para manter o contrato da API (ex: projeto.usuario)
+function formatarProjeto(projeto) {
+  if (!projeto) return null;
+
+  const { usuarios, ...resto } = projeto;
+  return {
+    ...resto,
+    usuario: usuarios?.nome,
+  };
+}
 
 module.exports = {
   listar: async (filtros = {}) => {
-    let sql = 'SELECT * FROM projetos WHERE 1=1';
-    const params = [];
+    const where = {};
 
     if (filtros.descricao) {
-      params.push(`%${filtros.descricao}%`);
-      sql += ` AND descricao ILIKE $${params.length}`;
+      where.descricao = {
+        contains: filtros.descricao,
+        mode: 'insensitive',
+      };
     }
 
     if (filtros.nome) {
-      params.push(`%${filtros.nome}%`);
-      sql += ` AND nome ILIKE $${params.length}`;
+      where.nome = {
+        contains: filtros.nome,
+        mode: 'insensitive',
+      };
     }
 
     if (filtros.usuario_id) {
-      params.push(filtros.usuario_id);
-      sql += ` AND usuario_id = $${params.length}`;
+      where.usuario_id = Number(filtros.usuario_id);
     }
 
-    sql += ' ORDER BY id';
-    const result = await pool.query(sql, params);
-    return result.rows;
+    const lista = await prisma.projetos.findMany({
+      where,
+      include: incluirNomes,
+      orderBy: { id: 'asc' },
+    });
+
+    return lista.map(formatarProjeto);
   },
 
   buscar: async (id) => {
-    const result = await pool.query(
-      'SELECT * FROM projetos WHERE id = $1',
-      [id]
-    );
-    return result.rows[0] || null;
+    const projeto = await prisma.projetos.findUnique({
+      where: { id: Number(id) },
+      include: incluirNomes,
+    });
+
+    return formatarProjeto(projeto);
   },
 
-  adicionar: async ({ nome, descricao, usuario_id, usuarioId }) => {
-    const idUsuario = usuario_id ?? usuarioId;
-    const result = await pool.query(
-      `INSERT INTO projetos (nome, descricao, usuario_id, criado_em)
-       VALUES ($1, $2, $3, NOW())
-       RETURNING *`,
-      [nome || 'Novo Projeto', descricao, idUsuario]
-    );
-    return result.rows[0];
+  adicionar: async (dados) => {
+    const idUsuario = dados.usuario_id ?? dados.usuarioId;
+
+    const novoProjeto = await prisma.projetos.create({
+      data: {
+        nome: dados.nome || 'Novo Projeto',
+        descricao: dados.descricao,
+        usuario_id: idUsuario ? Number(idUsuario) : undefined,
+        criado_em: new Date(),
+      },
+      include: incluirNomes,
+    });
+
+    return formatarProjeto(novoProjeto);
   },
 
   atualizar: async (id, dados) => {
-    const { nome, descricao, usuario_id, usuarioId } = dados;
-    const idUsuario = usuario_id ?? usuarioId;
+    const idNum = Number(id);
 
-    const result = await pool.query(
-      `UPDATE projetos
-       SET nome = COALESCE($1, nome),
-           descricao = COALESCE($2, descricao),
-           usuario_id = COALESCE($3, usuario_id)
-       WHERE id = $4
-       RETURNING *`,
-      [nome, descricao, idUsuario, id]
-    );
-    return result.rows[0] || null;
+    const projetoAtual = await prisma.projetos.findUnique({
+      where: { id: idNum },
+    });
+
+    if (!projetoAtual) return null;
+
+    const idUsuario = dados.usuario_id ?? dados.usuarioId;
+
+    const projetoAtualizado = await prisma.projetos.update({
+      where: { id: idNum },
+      data: {
+        nome: dados.nome ?? undefined,
+        descricao: dados.descricao ?? undefined,
+        usuario_id: idUsuario ? Number(idUsuario) : undefined,
+      },
+      include: incluirNomes,
+    });
+
+    return formatarProjeto(projetoAtualizado);
   },
 
   remover: async (id) => {
-    const result = await pool.query(
-      'DELETE FROM projetos WHERE id = $1 RETURNING *',
-      [id]
-    );
-    return result.rows[0] || null;
+    try {
+      const projetoRemovido = await prisma.projetos.delete({
+        where: { id: Number(id) },
+        include: incluirNomes,
+      });
+
+      return formatarProjeto(projetoRemovido);
+    } catch (error) {
+      if (error.code === 'P2025') return null;
+      throw error;
+    }
   },
 };
