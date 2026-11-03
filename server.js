@@ -20,6 +20,7 @@ const prioridadeRoutes = require("./src/routes/prioridades.routes");
 
 const swaggerUi = require('swagger-ui-express');
 const openapi = require('./src/docs/openapi');
+const SWAGGER_CDN = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14';
 
 const app = express();
 const cors = require("cors");
@@ -45,7 +46,13 @@ app.use(logger);
 app.use(temporizador);
 // app.use(cors);
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi, {
+  customCssUrl: `${SWAGGER_CDN}/swagger-ui.css`,
+  customJs: [
+    `${SWAGGER_CDN}/swagger-ui-bundle.js`,
+    `${SWAGGER_CDN}/swagger-ui-standalone-preset.js`,
+  ],
+}));
 
 app.use("/auth",  authRoutes);
 // Lista usuarios -----------------------------------------
