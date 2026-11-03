@@ -45,6 +45,8 @@ app.use(logger);
 app.use(temporizador);
 // app.use(cors);
 
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
+
 app.use("/auth",  authRoutes);
 // Lista usuarios -----------------------------------------
 app.use("/usuarios", autenticar, usuariosRoutes);
@@ -55,7 +57,6 @@ app.use("/projetos", autenticar, projetosRoutes);
 
 app.use("/prioridades", autenticar, prioridadeRoutes);
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
 // Rota 404
 app.use((req, res) => {
   const rota = `${req.method} ${req.url}`;

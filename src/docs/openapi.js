@@ -1,6 +1,8 @@
 const tarefas = require('./tarefas.docs');
 const usuarios = require('./usuarios.docs');
-const projetos = require('./projetos.docs'); // 1. Importa a doc de projetos
+const projetos = require('./projetos.docs');
+const prioridades = require('./prioridades.docs');
+const auth = require('./auth.docs'); // 1. Importa a doc de auth
 const comum = require('./comum');
 
 module.exports = {
@@ -16,18 +18,22 @@ module.exports = {
 
     // 2. Unifica todas as rotas
     paths: {
+        ...auth.paths,
         ...tarefas.paths,
         ...usuarios.paths,
-        ...projetos.paths
+        ...projetos.paths,
+        ...prioridades.paths
     },
 
     components: {
         // 3. Unifica todos os schemas
         schemas: {
             ...comum.schemas,
+            ...auth.schemas,
             ...tarefas.schemas,
             ...usuarios.schemas,
-            ...projetos.schemas
+            ...projetos.schemas,
+            ...prioridades.schemas
         },
 
         securitySchemes: {
