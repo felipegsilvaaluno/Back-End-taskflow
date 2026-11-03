@@ -4,7 +4,6 @@ const logger = require("./src/middlewares/logger");
 const validarContentType = require("./src/middlewares/validarContentType");
 const temporizador = require("./src/middlewares/temporizador");
 const autenticar = require("./src/middlewares/autenticar");
-// const cors = require("./src/middlewares/cors");
 const tratarErros = require('./src/middlewares/erro.middleware');
 const criarErro = require("./src/utils/criarErro");
 
@@ -20,7 +19,9 @@ const prioridadeRoutes = require("./src/routes/prioridades.routes");
 
 const swaggerUi = require('swagger-ui-express');
 const openapi = require('./src/docs/openapi');
-const SWAGGER_CDN = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14';
+
+// CDN atualizada para carregar os arquivos minificados corretamente na Vercel
+const SWAGGER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3';
 
 const app = express();
 const cors = require("cors");
@@ -44,24 +45,20 @@ app.use(express.json());
 app.use(validarContentType);
 app.use(logger);
 app.use(temporizador);
-// app.use(cors);
 
+// Rota dos Docs com os links ajustados
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi, {
-  customCssUrl: `${SWAGGER_CDN}/swagger-ui.css`,
+  customCssUrl: `${SWAGGER_CDN}/swagger-ui.min.css`,
   customJs: [
     `${SWAGGER_CDN}/swagger-ui-bundle.js`,
     `${SWAGGER_CDN}/swagger-ui-standalone-preset.js`,
   ],
 }));
 
-app.use("/auth",  authRoutes);
-// Lista usuarios -----------------------------------------
+app.use("/auth", authRoutes);
 app.use("/usuarios", autenticar, usuariosRoutes);
-// Lista tarefas e faz todo CRUD --------------------------
 app.use("/tarefas", autenticar, tarefasRoutes);
-// Lista projetos e faz todo CRUD --------------------------
 app.use("/projetos", autenticar, projetosRoutes);
-
 app.use("/prioridades", autenticar, prioridadeRoutes);
 
 // Rota 404
@@ -72,4 +69,10 @@ app.use((req, res) => {
 
 app.use(tratarErros);
 
-app.listen(PORTA, () => console.log(`Porta ${PORTA}`));
+// Executa o listen APENAS se estiver rodando localmente (não na Vercel)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORTA, () => console.log(`Porta ${PORTA}`));
+}
+
+// OBRIGATÓRIO PARA A VERCEL: Exporta a aplicação para virar função Serverless
+module.exports = app;
