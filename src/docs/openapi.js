@@ -14,7 +14,7 @@ module.exports = {
     },
     security: [{ bearerAuth: [] }],
 
-    servers: [{ url: 'http://localhost:3000', description: 'Local' }],
+    servers: [{ url: '/', description: 'Este servidor' }],
 
     // 2. Unifica todas as rotas
     paths: {
