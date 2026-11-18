@@ -94,9 +94,9 @@ describe('rotas da API', () => {
         expect(criada.status).toBe(201);
         expect(criada.body).toHaveProperty('id');
 
-        //   const removida = await request(app).delete(`/tarefas/${criada.body.id}`)
-        //      .set('Authorization', `Bearer ${token}`);
-        //   expect(removida.status).toBe(200);
+       const removida = await request(app).delete(`/tarefas/${criada.body.id}`)
+          .set('Authorization', `Bearer ${token}`);
+       expect(removida.status).toBe(200);
     });
 
     test('GET /tarefas/999999 responde 404', async () => {
