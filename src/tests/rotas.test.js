@@ -16,8 +16,8 @@ const PRIORIDADE_ID = 6;
 const token = jwt.sign({ id: 1, nome: 'Teste' }, process.env.JWT_SECRET);
 
 // O logger, o temporizador e o tratarErros escrevem no terminal
-jest.spyOn(console, 'log').mockImplementation(() => { });
-jest.spyOn(console, 'error').mockImplementation(() => { });
+//jest.spyOn(console, 'log').mockImplementation(() => { });
+//jest.spyOn(console, 'error').mockImplementation(() => { });
 
 describe('rotas da API', () => {
     test('GET / responde 200 com a mensagem da API', async () => {
